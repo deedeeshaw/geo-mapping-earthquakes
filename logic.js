@@ -15,12 +15,30 @@ L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 // Define a markerSize function that will give a different radius 
 // based on the magnitude of the earthquake
 function markerSize(mag) {
-  return mag * 25000;
+  return mag * 4;
+}
+
+// Function that will determine the color of a circle based on the magnitidue
+function getColor(mag) {
+  switch (true) {
+  case mag > 5:
+    return "#BD0026";
+  case mag > 4:
+    return "#E31A1C";
+  case mag >3:
+    return "#FC4E2A";
+  case mag > 2:
+    return "#FD8D3C";
+  case mag > 1:
+    return "#FEB24C";
+  default:
+    return "#FED976";
+  }
 }
 
 // Define the API link
 var APILink = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
-// console.log(APILink)
+console.log(APILink)
 
 d3.json(APILink, function(response) {
 // set a variable to get the length of the features in the response
@@ -32,23 +50,37 @@ d3.json(APILink, function(response) {
     var location = response.features[i].geometry;
     
      if (location) {
-         L.circle(([location.coordinates[1], location.coordinates[0]]), {
+         L.circleMarker(([location.coordinates[1], location.coordinates[0]]), {
         radius: markerSize(response.features[i].properties.mag),
-        color: "white",
-        fillColor: "purple",
-        weight: .5}).addTo(myMap);
+        color: "black",
+        fillColor: getColor(response.features[i].properties.mag),
+        weight: .1
+      }).bindPopup(`<b> Magnitude:  ${response.features[i].properties.mag}</b>
+        <br> Place: ${response.features[i].properties.place}`)
+        .addTo(myMap);
     }
   }
 });
 
-// // Loop through the cities array and create one marker for each city object
-// for (var i = 0; i < cities.length; i++) {
-//   L.circle(cities[i].location, {
-//     fillOpacity: 0.75,
-//     color: "white",
-//     fillColor: "purple",
-//     // Setting our circle's radius equal to the output of our markerSize function
-//     // This will make our marker's size proportionate to its population
-//     radius: markerSize(cities[i].population)
-//   }).bindPopup("<h1>" + cities[i].name + "</h1> <hr> <h3>Population: " + cities[i].population + "</h3>").addTo(myMap);
+ // Set up the legend
+ var legend = L.control({position: 'bottomright'});
+ legend.onAdd = function (map) {
 
+ var div = L.DomUtil.create('div', 'info legend');
+ var labels = ['<strong>Earthquake<br>Magnitude</strong>'];
+
+ var grades = [0, 1, 2, 3, 4, 5];
+ 
+ // loop through magnitude grades and generate a label with a colored square for each interval
+ for (var i = 0; i < grades.length; i++) {
+         div.innerHTML += 
+         labels.push(
+             '<i class="circle" style="background:' + getColor(grades[i]+ 1) + '"></i> ' +
+             grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] : '+'))
+     }
+     div.innerHTML = labels.join('<br>');
+ return div;
+ };
+
+  // Adding legend to the map
+ legend.addTo(myMap);
