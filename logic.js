@@ -54,6 +54,7 @@ d3.json(APILink, function(response) {
         radius: markerSize(response.features[i].properties.mag),
         color: "black",
         fillColor: getColor(response.features[i].properties.mag),
+        fillOpacity: .7,
         weight: .1
       }).bindPopup(`<b> Magnitude:  ${response.features[i].properties.mag}</b>
         <br> Place: ${response.features[i].properties.place}`)
